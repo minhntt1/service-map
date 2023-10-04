@@ -1,12 +1,23 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public class Field {
 	private String field_name;
 	private String type;
+	@JsonInclude(Include.NON_NULL)
+	private String color;
 	public Field(String field_name, String type) {
 		super();
 		this.field_name = field_name;
 		this.type = type;
+	}
+	public Field(String field_name, String type, String color) {
+		super();
+		this.field_name = field_name;
+		this.type = type;
+		this.color = color;
 	}
 	public Field() {
 		// TODO Auto-generated constructor stub
@@ -23,8 +34,10 @@ public class Field {
 	public void setType(String type) {
 		this.type = type;
 	}
-	@Override
-	public String toString() {
-		return String.format("Field [field_name=%s, type=%s]", field_name, type);
+	public String getColor() {
+		return color;
+	}
+	public void setColor(String color) {
+		this.color = color;
 	}
 }

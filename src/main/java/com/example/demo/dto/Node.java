@@ -1,11 +1,17 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Node {
 	private Integer id;
 	private String title;
 	private Double mainStat;
 	private Double secondaryStat;
 	private Double subTitle;
+	@JsonProperty(value = "arc__success")
+	private Double arcSuccess;
+	@JsonProperty(value = "arc__error")
+	private Double arcError;
 	public Node(Integer id, String title, Double mainStat, Double secondaryStat, Double subTitle) {
 		super();
 		this.id = id;
@@ -13,6 +19,8 @@ public class Node {
 		this.mainStat = mainStat;
 		this.secondaryStat = secondaryStat;
 		this.subTitle = subTitle;
+		this.arcError = subTitle;
+		this.arcSuccess = 1 - subTitle;
 	}
 	public Node() {
 		// TODO Auto-generated constructor stub
@@ -47,20 +55,16 @@ public class Node {
 	public void setSubTitle(Double subTitle) {
 		this.subTitle = subTitle;
 	}
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Node [id=");
-		builder.append(id);
-		builder.append(", title=");
-		builder.append(title);
-		builder.append(", mainStat=");
-		builder.append(mainStat);
-		builder.append(", secondaryStat=");
-		builder.append(secondaryStat);
-		builder.append(", subTitle=");
-		builder.append(subTitle);
-		builder.append("]");
-		return builder.toString();
+	public Double getArcSuccess() {
+		return arcSuccess;
+	}
+	public void setArcSuccess(Double arcSuccess) {
+		this.arcSuccess = arcSuccess;
+	}
+	public Double getArcError() {
+		return arcError;
+	}
+	public void setArcError(Double arcError) {
+		this.arcError = arcError;
 	}
 }

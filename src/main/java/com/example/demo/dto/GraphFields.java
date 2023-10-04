@@ -22,7 +22,9 @@ public class GraphFields {
 				new Field("title", "string"),
 				new Field("mainStat", "number"),
 				new Field("secondaryStat", "number"),
-				new Field("subTitle","number")
+				new Field("subTitle","number"),
+				new Field("arc__success", "number", "green"),
+				new Field("arc__error", "number", "red")
 		));
 	}
 	public List<Field> getEdges_fields() {
