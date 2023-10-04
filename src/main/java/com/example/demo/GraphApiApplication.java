@@ -14,17 +14,18 @@ public class GraphApiApplication {
 //			Map<String, Long[]> distinctService = new HashMap<String, Long[]>();
 //			Map<Integer, HashSet<Integer>> conn = new HashMap<Integer, HashSet<Integer>>();
 //			
-//			ByteBuffer buffer = ByteUtils.fromHexString("0xa722c060fe8a1acda5736b4c759b7bfd");
+//			ByteBuffer buffer = ByteUtils.fromHexString("0x50a1198c6e701f8d6cc7541fd4573da8");
 //			Map<Long, ArrayList<Long>> traceRef = new HashMap<Long, ArrayList<Long>>();
 //			Map<Long, Long[]> spanDurStart = new HashMap<Long, Long[]>();
 //			Map<Long, String[]> spanSvc = new HashMap<Long, String[]>();
+//			HashSet<Long> spanIsConsumer = new HashSet<Long>();
 //			Long[] rootSpan = new Long[1];
 //			
 //			try (Stream<Trace> stream = traceRepo.findByTraceId(buffer)) {
 //				stream.forEach(x -> {
 //					String[] kind = Utils.getFirstCall(x);
 //
-//					if (kind != null)
+//					if (kind != null) {
 //						if (kind.length == 2) {
 //							StringBuilder builder = new StringBuilder();
 //							builder.append(kind[0]).append(' ').append(kind[1]);
@@ -69,6 +70,11 @@ public class GraphApiApplication {
 //							++newUpdt1[1];
 //							spanSvc.put(x.getPk().getSpanId(), new String[] { title, title1 });
 //						}
+//					}
+//					else if(Utils.isConsumer(x)) {
+//						String[] resolveSvc = Utils.getServiceCall(x);
+//						spanSvc.put(x.getPk().getSpanId(), new String[] {new StringBuilder().append(resolveSvc[0]).append(' ').append(resolveSvc[1]).toString()});
+//					}
 //
 //					List<SpanRef> ref = x.getRefs();
 //
@@ -84,11 +90,13 @@ public class GraphApiApplication {
 //						rootSpan[0] = x.getPk().getSpanId();
 //					}
 //
+//					if(Utils.isConsumer(x))
+//						spanIsConsumer.add(x.getPk().getSpanId());
 //					spanDurStart.put(x.getPk().getSpanId(), new Long[] { x.getDuration(), x.getStartTime() });
 //				});
 //			}
 //
-//			Utils.runTrace(rootSpan[0], traceRef, spanDurStart, distinctService, conn, spanSvc, 0, 0);
+//			Utils.runTrace(rootSpan[0], traceRef, spanDurStart, distinctService, conn, spanIsConsumer, spanSvc, 0, 0);
 //			
 //			System.out.println();
 //			

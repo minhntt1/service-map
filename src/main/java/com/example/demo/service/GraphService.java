@@ -34,8 +34,7 @@ public class GraphService {
 	public GraphData graphData(Long start, Long end) {
 		HashSet<ByteBuffer> distinctTraceId = new HashSet<ByteBuffer>();
 
-		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000,
-				end * 1000)) {
+		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000, end * 1000)) {
 			indexs.forEach(x -> distinctTraceId.add(x.getTraceId()));
 		}
 
@@ -46,13 +45,14 @@ public class GraphService {
 			Map<Long, ArrayList<Long>> traceRef = new HashMap<Long, ArrayList<Long>>();
 			Map<Long, Long[]> spanDurStart = new HashMap<Long, Long[]>();
 			Map<Long, String[]> spanSvc = new HashMap<Long, String[]>();
+			HashSet<Long> spanIsConsumer = new HashSet<Long>();
 			Long[] rootSpan = new Long[1];
-
+			
 			try (Stream<Trace> stream = traceRepo.findByTraceId(buffer)) {
 				stream.forEach(x -> {
 					String[] kind = Utils.getFirstCall(x);
 
-					if (kind != null)
+					if (kind != null) {
 						if (kind.length == 2) {
 							StringBuilder builder = new StringBuilder();
 							builder.append(kind[0]).append(' ').append(kind[1]);
@@ -97,6 +97,11 @@ public class GraphService {
 							++newUpdt1[1];
 							spanSvc.put(x.getPk().getSpanId(), new String[] { title, title1 });
 						}
+					}
+					else if(Utils.isConsumer(x)) {
+						String[] resolveSvc = Utils.getServiceCall(x);
+						spanSvc.put(x.getPk().getSpanId(), new String[] {new StringBuilder().append(resolveSvc[0]).append(' ').append(resolveSvc[1]).toString()});
+					}
 
 					List<SpanRef> ref = x.getRefs();
 
@@ -112,11 +117,13 @@ public class GraphService {
 						rootSpan[0] = x.getPk().getSpanId();
 					}
 
+					if(Utils.isConsumer(x))
+						spanIsConsumer.add(x.getPk().getSpanId());
 					spanDurStart.put(x.getPk().getSpanId(), new Long[] { x.getDuration(), x.getStartTime() });
 				});
 			}
 
-			Utils.runTrace(rootSpan[0], traceRef, spanDurStart, distinctService, conn, spanSvc, 0, 0);
+			Utils.runTrace(rootSpan[0], traceRef, spanDurStart, distinctService, conn, spanIsConsumer, spanSvc, 0, 0);
 		}
 
 		distinctService.put("user", new Long[] { 0l, 0l, 0l, 0l });
@@ -143,8 +150,6 @@ public class GraphService {
 			nodes.add(new Node(v[0].intValue(), k, Utils.round(avgResp), Utils.round(reqPerMin), Utils.round(errRate)));
 		});
 
-		GraphData data = new GraphData(edges, nodes);
-
-		return data;
+		return new GraphData(edges, nodes);
 	}
 }
