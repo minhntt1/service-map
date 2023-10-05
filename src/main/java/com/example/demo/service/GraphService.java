@@ -98,10 +98,6 @@ public class GraphService {
 							spanSvc.put(x.getPk().getSpanId(), new String[] { title, title1 });
 						}
 					}
-					else if(Utils.isConsumer(x)) {
-						String[] resolveSvc = Utils.getServiceCall(x);
-						spanSvc.put(x.getPk().getSpanId(), new String[] {new StringBuilder().append(resolveSvc[0]).append(' ').append(resolveSvc[1]).toString()});
-					}
 
 					List<SpanRef> ref = x.getRefs();
 

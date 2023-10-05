@@ -11,15 +11,14 @@ import com.example.demo.model.Trace;
 
 public class Utils {
 	private static ArrayList<String> dbVer = new ArrayList<>();
-	private static ArrayList<String> queue = new ArrayList<>();
+	private static ArrayList<String> broker = new ArrayList<String>();
+	private static ArrayList<String> queueProcess = new ArrayList<>();
 
 	static {
 		Utils.dbVer.add("^io\\.opentelemetry\\.jdbc(.+)?$");
 		Utils.dbVer.add("^io\\.opentelemetry\\.mongo(.+)?$");
-	}
-
-	static {
-		Utils.queue.add("^io\\.opentelemetry\\.spring-rabbit(.+)?$");
+		Utils.queueProcess.add("^io\\.opentelemetry\\.spring-rabbit(.+)?$");
+		Utils.broker.add("^io\\.opentelemetry\\.rabbitmq(.+)?$");
 	}
 
 	public static double round(double d) {
@@ -30,16 +29,20 @@ public class Utils {
 		KeyValue errKey1 = trace.getTags().stream().filter(x -> x.getKey().equals("error")).findFirst().orElse(null);
 		if (errKey1 != null)
 			return true;
-		KeyValue errKey = trace.getTags().stream().filter(x -> x.getKey().equals("http.status_code")).findFirst().orElse(null);
+		KeyValue errKey = trace.getTags().stream().filter(x -> x.getKey().equals("http.status_code")).findFirst()
+				.orElse(null);
 		if (errKey == null)
 			return false;
 		return errKey.getValueLong() >= 400;
 	}
 
-	public static Long runTrace(Long spanId, Map<Long, ArrayList<Long>> traceRef, Map<Long, Long[]> spanDurStart,
+	public static Long runTrace(long spanId, Map<Long, ArrayList<Long>> traceRef, Map<Long, Long[]> spanDurStart,
 			Map<String, Long[]> distinctService, Map<Integer, HashSet<Integer>> conn, HashSet<Long> spanIsConsumer,
 			Map<Long, String[]> spanSvc, int depth, int prevIdx) {
 		boolean contain = spanSvc.containsKey(spanId);
+		String[] arrSvc = contain ? spanSvc.get(spanId) : null;
+		int lenSvc = arrSvc!=null ? arrSvc.length : 0;
+		boolean isConsumer = spanIsConsumer.contains(spanId);
 
 		int currNodeIdx = prevIdx;
 
@@ -47,36 +50,46 @@ public class Utils {
 		ArrayList<Long> childSpan = traceRef.get(spanId);
 
 		if (contain) {
-			int idx1 = distinctService.get(spanSvc.get(spanId)[0])[0].intValue();
-			
-			if (spanSvc.get(spanId).length > 1) {
-				int idx2 = distinctService.get(spanSvc.get(spanId)[1])[0].intValue();
-				if (!conn.containsKey(idx1))
-					conn.put(idx1, new HashSet<>());
-				conn.get(idx1).add(idx2);
-				currNodeIdx = idx2;
-			} else {
-				currNodeIdx = idx1;
-			}
-			
+			String svc0 = arrSvc[0];
+			int idx1 = distinctService.get(svc0)[0].intValue();
+
 			if (!conn.containsKey(prevIdx))
 				conn.put(prevIdx, new HashSet<>());
-			conn.get(prevIdx).add(idx1);
+
+			if (lenSvc > 1) {
+				int idx2 = distinctService.get(arrSvc[1])[0].intValue();
+
+				if (!conn.containsKey(idx1))
+					conn.put(idx1, new HashSet<>());
+
+				conn.get(idx1).add(idx2);
+				currNodeIdx = idx2;
+				conn.get(prevIdx).add(idx1);
+			} else {
+				currNodeIdx = idx1;
+
+				if (!isConsumer)
+					conn.get(prevIdx).add(idx1);
+				else {
+					Long[] res = distinctService.get(svc0);
+					--res[1];
+				}
+			}
 
 			if (depth > 0) {
 				Long currDur1 = currDur;
 
 				if (childSpan != null)
 					for (Long nextSpan : childSpan)
-						currDur1 -= runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer,
-								spanSvc, 0, currNodeIdx);
+						currDur1 -= runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer, spanSvc, 0, currNodeIdx);
 
-				for (String svc : spanSvc.get(spanId)) {
-					Long[] res = distinctService.get(svc);
-					res[3] += currDur1;
+				for (int i = 0; i < lenSvc; ++i) {
+					Long[] res = distinctService.get(arrSvc[i]);
+					if (i != 0 || !isConsumer || lenSvc != 2)
+						res[3] += currDur;
 				}
 
-				return spanIsConsumer.contains(spanId) ? 0l : currDur;
+				return isConsumer ? 0l : currDur;
 			}
 		}
 
@@ -89,24 +102,27 @@ public class Utils {
 					currDur += runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer,
 							spanSvc, depth + 1, currNodeIdx);
 
-		if (contain)
-			for (String svc : spanSvc.get(spanId)) {
-				Long[] res = distinctService.get(svc);
-				res[3] += currDur;
+		if (contain) {
+			for (int i = 0; i < lenSvc; ++i) {
+				Long[] res = distinctService.get(arrSvc[i]);
+				if (i != 0 || !isConsumer || lenSvc != 2)
+					res[3] += currDur;
 			}
+		}
 
 		return currDur;
 	}
 
 	public static boolean isConsumer(Trace trace) {
-		KeyValue spanKind = trace.getTags().stream().filter(x -> x.getKey().equals("span.kind")).findFirst().orElse(null);
+		KeyValue spanKind = trace.getTags().stream().filter(x -> x.getKey().equals("span.kind")).findFirst()
+				.orElse(null);
 		if (spanKind == null)
 			return false;
 		return spanKind.getValueString().equals("consumer");
 	}
-	
+
 	public static String[] getServiceCall(Trace trace) {
-		return new String[] {"Service", trace.getProcess().getServiceName()};
+		return new String[] { "Service", trace.getProcess().getServiceName() };
 	}
 
 	public static String[] getFirstCall(Trace trace) {
@@ -124,8 +140,13 @@ public class Utils {
 			String libName = trace.getTags().stream().filter(x -> x.getKey().equals("otel.library.name")).findFirst()
 					.orElse(null).getValueString();
 
-			if (Utils.queue.stream().anyMatch(x -> libName.matches(x))) {
+			if (Utils.queueProcess.stream().anyMatch(x -> libName.matches(x))) {
 				return new String[] { "Service", trace.getProcess().getServiceName() };
+			} else if (Utils.broker.stream().anyMatch(x -> libName.matches(x))) {
+				KeyValue queueKey = trace.getTags().stream()
+						.filter(x -> x.getKey().equals("messaging.destination.name")).findFirst().orElse(null);
+				return new String[] { "Queue", queueKey.getValueString(), "Service",
+						trace.getProcess().getServiceName() };
 			}
 
 			return null;
