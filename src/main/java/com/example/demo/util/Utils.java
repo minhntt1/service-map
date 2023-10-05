@@ -36,81 +36,52 @@ public class Utils {
 		return errKey.getValueLong() >= 400;
 	}
 
-	public static Long runTrace(long spanId, Map<Long, ArrayList<Long>> traceRef, Map<Long, Long[]> spanDurStart,
-			Map<String, Long[]> distinctService, Map<Integer, HashSet<Integer>> conn, HashSet<Long> spanIsConsumer,
-			Map<Long, String[]> spanSvc, int depth, int prevIdx) {
+	public static void runTrace(long spanId, Map<Long, ArrayList<Long>> traceRef, Map<String, Long[]> distinctService,
+			Map<Integer, HashSet<Integer>> conn, HashSet<Long> spanIsConsumer, Map<Long, String[]> spanSvc,
+			int prevIdx) {
 		boolean contain = spanSvc.containsKey(spanId);
 		String[] arrSvc = contain ? spanSvc.get(spanId) : null;
-		int lenSvc = arrSvc!=null ? arrSvc.length : 0;
+		int lenSvc = arrSvc != null ? arrSvc.length : 0;
 		boolean isConsumer = spanIsConsumer.contains(spanId);
 
 		int currNodeIdx = prevIdx;
 
-		Long currDur = contain ? spanDurStart.get(spanId)[0] : 0l;
 		ArrayList<Long> childSpan = traceRef.get(spanId);
 
 		if (contain) {
-			String svc0 = arrSvc[0];
-			int idx1 = distinctService.get(svc0)[0].intValue();
+			int idx1 = distinctService.get(arrSvc[0])[0].intValue();
 
 			if (!conn.containsKey(prevIdx))
 				conn.put(prevIdx, new HashSet<>());
 
 			if (lenSvc > 1) {
 				int idx2 = distinctService.get(arrSvc[1])[0].intValue();
-
-				if (!conn.containsKey(idx1))
-					conn.put(idx1, new HashSet<>());
-
-				conn.get(idx1).add(idx2);
+				
+				if(isConsumer) {
+					if (!conn.containsKey(idx1))
+						conn.put(idx1, new HashSet<>());
+					conn.get(idx1).add(idx2);
+				}
+				else {
+					if (!conn.containsKey(idx2))
+						conn.put(idx2, new HashSet<>());
+					conn.get(idx2).add(idx1);
+				}
+				
 				currNodeIdx = idx2;
+
 				conn.get(prevIdx).add(idx1);
 			} else {
 				currNodeIdx = idx1;
 
 				if (!isConsumer)
 					conn.get(prevIdx).add(idx1);
-				else {
-					Long[] res = distinctService.get(svc0);
-					--res[1];
-				}
-			}
-
-			if (depth > 0) {
-				Long currDur1 = currDur;
-
-				if (childSpan != null)
-					for (Long nextSpan : childSpan)
-						currDur1 -= runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer, spanSvc, 0, currNodeIdx);
-
-				for (int i = 0; i < lenSvc; ++i) {
-					Long[] res = distinctService.get(arrSvc[i]);
-					if (i != 0 || !isConsumer || lenSvc != 2)
-						res[3] += currDur;
-				}
-
-				return isConsumer ? 0l : currDur;
 			}
 		}
 
 		if (childSpan != null)
 			for (Long nextSpan : childSpan)
-				if (contain)
-					currDur -= runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer,
-							spanSvc, depth + 1, currNodeIdx);
-				else
-					currDur += runTrace(nextSpan, traceRef, spanDurStart, distinctService, conn, spanIsConsumer,
-							spanSvc, depth + 1, currNodeIdx);
-
-		if (contain) {
-			for (int i = 0; i < lenSvc; ++i) {
-				Long[] res = distinctService.get(arrSvc[i]);
-				if (i != 0 || !isConsumer || lenSvc != 2)
-					res[3] += currDur;
-			}
-		}
-
-		return currDur;
+				runTrace(nextSpan, traceRef, distinctService, conn, spanIsConsumer, spanSvc, currNodeIdx);
 	}
 
 	public static boolean isConsumer(Trace trace) {

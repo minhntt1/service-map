@@ -34,7 +34,8 @@ public class GraphService {
 	public GraphData graphData(Long start, Long end) {
 		HashSet<ByteBuffer> distinctTraceId = new HashSet<ByteBuffer>();
 
-		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000, end * 1000)) {
+		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000,
+				end * 1000)) {
 			indexs.forEach(x -> distinctTraceId.add(x.getTraceId()));
 		}
 
@@ -43,14 +44,14 @@ public class GraphService {
 
 		for (ByteBuffer buffer : distinctTraceId) {
 			Map<Long, ArrayList<Long>> traceRef = new HashMap<Long, ArrayList<Long>>();
-			Map<Long, Long[]> spanDurStart = new HashMap<Long, Long[]>();
 			Map<Long, String[]> spanSvc = new HashMap<Long, String[]>();
 			HashSet<Long> spanIsConsumer = new HashSet<Long>();
 			Long[] rootSpan = new Long[1];
-			
+
 			try (Stream<Trace> stream = traceRepo.findByTraceId(buffer)) {
 				stream.forEach(x -> {
 					String[] kind = Utils.getFirstCall(x);
+					boolean chkConsumer = Utils.isConsumer(x);
 
 					if (kind != null) {
 						if (kind.length == 2) {
@@ -66,7 +67,9 @@ public class GraphService {
 
 							if (Utils.checkError(x))
 								++newUpdt[2];
+							
 							++newUpdt[1];
+							newUpdt[3] += x.getDuration();
 
 							spanSvc.put(x.getPk().getSpanId(), new String[] { title });
 						} else if (kind.length == 4) {
@@ -94,7 +97,13 @@ public class GraphService {
 							}
 
 							++newUpdt[1];
-							++newUpdt1[1];
+							newUpdt1[3] += x.getDuration();
+
+							if (!chkConsumer) {
+								++newUpdt1[1];
+								newUpdt[3] += x.getDuration();
+							}
+
 							spanSvc.put(x.getPk().getSpanId(), new String[] { title, title1 });
 						}
 					}
@@ -113,13 +122,12 @@ public class GraphService {
 						rootSpan[0] = x.getPk().getSpanId();
 					}
 
-					if(Utils.isConsumer(x))
+					if (chkConsumer)
 						spanIsConsumer.add(x.getPk().getSpanId());
-					spanDurStart.put(x.getPk().getSpanId(), new Long[] { x.getDuration(), x.getStartTime() });
 				});
 			}
 
-			Utils.runTrace(rootSpan[0], traceRef, spanDurStart, distinctService, conn, spanIsConsumer, spanSvc, 0, 0);
+			Utils.runTrace(rootSpan[0], traceRef, distinctService, conn, spanIsConsumer, spanSvc, 0);
 		}
 
 		distinctService.put("user", new Long[] { 0l, 0l, 0l, 0l });
