@@ -39,23 +39,16 @@ public class Utils {
 	public static void runTrace(long spanId, Map<Long, ArrayList<Long>> traceRef, Map<String, Long[]> distinctService,
 			Map<Integer, HashSet<Integer>> conn, HashSet<Long> spanIsConsumer, Map<Long, String[]> spanSvc,
 			int prevIdx) {
-		boolean contain = spanSvc.containsKey(spanId);
-		String[] arrSvc = contain ? spanSvc.get(spanId) : null;
-		int lenSvc = arrSvc != null ? arrSvc.length : 0;
-		boolean isConsumer = spanIsConsumer.contains(spanId);
-
 		int currNodeIdx = prevIdx;
 
-		ArrayList<Long> childSpan = traceRef.get(spanId);
-
-		if (contain) {
-			int idx1 = distinctService.get(arrSvc[0])[0].intValue();
+		if (spanSvc.containsKey(spanId)) {
+			int idx1 = distinctService.get(spanSvc.get(spanId)[0])[0].intValue();
 
 			if (!conn.containsKey(prevIdx))
 				conn.put(prevIdx, new HashSet<>());
 
-			if (lenSvc > 1) {
-				int idx2 = distinctService.get(arrSvc[1])[0].intValue();
+			if (spanSvc.get(spanId).length > 1) {
+				int idx2 = distinctService.get(spanSvc.get(spanId)[1])[0].intValue();
 				
 				if (!conn.containsKey(idx1))
 					conn.put(idx1, new HashSet<>());
@@ -66,13 +59,13 @@ public class Utils {
 			} else {
 				currNodeIdx = idx1;
 
-				if (!isConsumer)
+				if (!spanIsConsumer.contains(spanId))
 					conn.get(prevIdx).add(idx1);
 			}
 		}
 
-		if (childSpan != null)
-			for (Long nextSpan : childSpan)
+		if (traceRef.get(spanId) != null)
+			for (Long nextSpan : traceRef.get(spanId))
 				runTrace(nextSpan, traceRef, distinctService, conn, spanIsConsumer, spanSvc, currNodeIdx);
 	}
 
