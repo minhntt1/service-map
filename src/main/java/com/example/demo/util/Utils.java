@@ -57,19 +57,11 @@ public class Utils {
 			if (lenSvc > 1) {
 				int idx2 = distinctService.get(arrSvc[1])[0].intValue();
 				
-				if(isConsumer) {
-					if (!conn.containsKey(idx1))
-						conn.put(idx1, new HashSet<>());
-					conn.get(idx1).add(idx2);
-				}
-				else {
-					if (!conn.containsKey(idx2))
-						conn.put(idx2, new HashSet<>());
-					conn.get(idx2).add(idx1);
-				}
+				if (!conn.containsKey(idx1))
+					conn.put(idx1, new HashSet<>());
+				conn.get(idx1).add(idx2);
 				
 				currNodeIdx = idx2;
-
 				conn.get(prevIdx).add(idx1);
 			} else {
 				currNodeIdx = idx1;
