@@ -40,9 +40,4 @@ public class Process {
 	public void setTags(List<KeyValue> tags) {
 		this.tags = tags;
 	}
-
-	@Override
-	public String toString() {
-		return String.format("Process [serviceName=%s, tags=%s]", serviceName, tags);
-	}
 }

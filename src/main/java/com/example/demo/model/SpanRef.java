@@ -50,9 +50,4 @@ public class SpanRef {
 	public void setSpanId(Long spanId) {
 		this.spanId = spanId;
 	}
-
-	@Override
-	public String toString() {
-		return String.format("SpanRef [refType=%s, traceId=%s, spanId=%s]", refType, traceId, spanId);
-	}
 }

@@ -22,7 +22,7 @@ public class Utils {
 	}
 
 	public static double round(double d) {
-		return new BigDecimal(d).setScale(2, RoundingMode.HALF_DOWN).doubleValue();
+		return BigDecimal.valueOf(d).setScale(2, RoundingMode.HALF_DOWN).doubleValue();
 	}
 
 	public static boolean checkError(Trace trace) {

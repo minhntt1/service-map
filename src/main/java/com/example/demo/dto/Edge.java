@@ -31,8 +31,4 @@ public class Edge {
 	public void setTarget(Integer target) {
 		this.target = target;
 	}
-	@Override
-	public String toString() {
-		return String.format("Edge [id=%s, source=%s, target=%s]", id, source, target);
-	}
 }

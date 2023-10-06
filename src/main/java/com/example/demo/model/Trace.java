@@ -48,10 +48,6 @@ public class Trace {
 		public void setSpanHash(Long spanHash) {
 			this.spanHash = spanHash;
 		}
-		@Override
-		public String toString() {
-			return String.format("TracePK [traceId=%s, spanId=%s, spanHash=%s]", traceId, spanId, spanHash);
-		}
 	}
 	
 	@PrimaryKey
@@ -185,12 +181,5 @@ public class Trace {
 
 	public void setTags(List<KeyValue> tags) {
 		this.tags = tags;
-	}
-
-	@Override
-	public String toString() {
-		return String.format(
-				"Trace [pk=%s, duration=%s, flags=%s, logs=%s, operationName=%s, parentId=%s, process=%s, refs=%s, startTime=%s, tags=%s]",
-				pk, duration, flags, logs, operationName, parentId, process, refs, startTime, tags);
 	}
 }

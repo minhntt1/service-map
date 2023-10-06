@@ -25,8 +25,4 @@ public class GraphData {
 	public void setNodes(List<Node> nodes) {
 		this.nodes = nodes;
 	}
-	@Override
-	public String toString() {
-		return String.format("GraphData [edges=%s, nodes=%s]", edges, nodes);
-	}
 }

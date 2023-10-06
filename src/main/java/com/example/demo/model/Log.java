@@ -40,9 +40,4 @@ public class Log {
 	public void setFields(List<KeyValue> fields) {
 		this.fields = fields;
 	}
-
-	@Override
-	public String toString() {
-		return String.format("Log [timestamp=%s, fields=%s]", timestamp, fields);
-	}
 }

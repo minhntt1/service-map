@@ -39,8 +39,4 @@ public class GraphFields {
 	public void setNodes_fields(List<Field> nodes_fields) {
 		this.nodes_fields = nodes_fields;
 	}
-	@Override
-	public String toString() {
-		return String.format("GraphFields [edges_fields=%s, nodes_fields=%s]", edges_fields, nodes_fields);
-	}
 }

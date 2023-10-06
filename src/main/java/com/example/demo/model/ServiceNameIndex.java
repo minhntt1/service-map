@@ -49,9 +49,4 @@ public class ServiceNameIndex {
 	public void setTraceId(ByteBuffer traceId) {
 		this.traceId = traceId;
 	}
-
-	@Override
-	public String toString() {
-		return String.format("ServiceNameIndex [indexKey=%s, traceId=%s]", indexKey, traceId);
-	}
 }

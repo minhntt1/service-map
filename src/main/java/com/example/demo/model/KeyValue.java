@@ -99,25 +99,4 @@ public class KeyValue {
 	public void setValueBinary(ByteBuffer valueBinary) {
 		this.valueBinary = valueBinary;
 	}
-
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("KeyValue [key=");
-		builder.append(key);
-		builder.append(", valueType=");
-		builder.append(valueType);
-		builder.append(", valueString=");
-		builder.append(valueString);
-		builder.append(", valueBool=");
-		builder.append(valueBool);
-		builder.append(", valueLong=");
-		builder.append(valueLong);
-		builder.append(", valueDouble=");
-		builder.append(valueDouble);
-		builder.append(", valueBinary=");
-		builder.append(valueBinary);
-		builder.append("]");
-		return builder.toString();
-	}
 }

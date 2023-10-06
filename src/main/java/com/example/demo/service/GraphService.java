@@ -34,20 +34,19 @@ public class GraphService {
 	public GraphData graphData(Long start, Long end) {
 		HashSet<ByteBuffer> distinctTraceId = new HashSet<ByteBuffer>();
 
-		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000,
-				end * 1000)) {
+		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000, end * 1000)) {
 			indexs.forEach(x -> distinctTraceId.add(x.getTraceId()));
 		}
 
 		Map<String, Long[]> distinctService = new HashMap<String, Long[]>();
 		Map<Integer, HashSet<Integer>> conn = new HashMap<Integer, HashSet<Integer>>();
-
+		
 		for (ByteBuffer buffer : distinctTraceId) {
 			Map<Long, ArrayList<Long>> traceRef = new HashMap<Long, ArrayList<Long>>();
 			Map<Long, String[]> spanSvc = new HashMap<Long, String[]>();
 			HashSet<Long> spanIsConsumer = new HashSet<Long>();
-			Long[] rootSpan = new Long[1];
-
+			long[] rootSpan = new long[1];
+			
 			try (Stream<Trace> stream = traceRepo.findByTraceId(buffer)) {
 				stream.forEach(x -> {
 					String[] kind = Utils.getFirstCall(x);
