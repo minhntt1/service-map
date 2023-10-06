@@ -1,12 +1,19 @@
 package com.example.demo.dto;
 
+import com.example.demo.util.MainStatSerializer;
+import com.example.demo.util.SecondaryStatSerializer;
+import com.example.demo.util.SubtitleSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class Node {
 	private Integer id;
 	private String title;
+	@JsonSerialize(using = MainStatSerializer.class)
 	private Double mainStat;
+	@JsonSerialize(using = SecondaryStatSerializer.class)
 	private Double secondaryStat;
+	@JsonSerialize(using = SubtitleSerializer.class)
 	private Double subTitle;
 	@JsonProperty(value = "arc__success")
 	private Double arcSuccess;
