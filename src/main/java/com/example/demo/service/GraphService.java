@@ -52,7 +52,9 @@ public class GraphService {
 				stream.forEach(x -> {
 					String[] kind = Utils.getFirstCall(x);
 					boolean chkConsumer = Utils.isConsumer(x);
-
+					long currDur = x.getDuration();
+					long spanId = x.getPk().getSpanId();
+					
 					if (kind != null) {
 						if (kind.length == 2) {
 							StringBuilder builder = new StringBuilder();
@@ -69,9 +71,9 @@ public class GraphService {
 								++newUpdt[2];
 							
 							++newUpdt[1];
-							newUpdt[3] += x.getDuration();
+							newUpdt[3] += currDur;
 
-							spanSvc.put(x.getPk().getSpanId(), new String[] { title });
+							spanSvc.put(spanId, new String[] { title });
 						} else if (kind.length == 4) {
 							StringBuilder builder = new StringBuilder();
 							builder.append(kind[0]).append(' ').append(kind[3]).append(' ').append(kind[1]);
@@ -97,14 +99,14 @@ public class GraphService {
 							}
 
 							++newUpdt[1];
-							newUpdt1[3] += x.getDuration();
+							newUpdt1[3] += currDur;
 
 							if (!chkConsumer) {
 								++newUpdt1[1];
-								newUpdt[3] += x.getDuration();
+								newUpdt[3] += currDur;
 							}
 
-							spanSvc.put(x.getPk().getSpanId(), new String[] { title, title1 });
+							spanSvc.put(spanId, new String[] { title, title1 });
 						}
 					}
 
@@ -117,13 +119,13 @@ public class GraphService {
 							traceRef.put(parSpan, new ArrayList<Long>());
 						}
 
-						traceRef.get(parSpan).add(x.getPk().getSpanId());
+						traceRef.get(parSpan).add(spanId);
 					} else {
-						rootSpan[0] = x.getPk().getSpanId();
+						rootSpan[0] = spanId;
 					}
 
 					if (chkConsumer)
-						spanIsConsumer.add(x.getPk().getSpanId());
+						spanIsConsumer.add(spanId);
 				});
 			}
 
