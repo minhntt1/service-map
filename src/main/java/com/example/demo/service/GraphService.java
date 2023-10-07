@@ -14,9 +14,11 @@ import com.example.demo.dto.Edge;
 import com.example.demo.dto.GraphData;
 import com.example.demo.dto.Node;
 import com.example.demo.model.ServiceNameIndex;
+import com.example.demo.model.ServiceNames;
 import com.example.demo.model.SpanRef;
 import com.example.demo.model.Trace;
 import com.example.demo.repo.ServiceNameIndexRepo;
+import com.example.demo.repo.ServiceNamesRepo;
 import com.example.demo.repo.TraceRepo;
 import com.example.demo.util.Utils;
 
@@ -24,34 +26,42 @@ import com.example.demo.util.Utils;
 public class GraphService {
 	private TraceRepo traceRepo;
 	private ServiceNameIndexRepo serviceNameIndexRepo;
+	private ServiceNamesRepo serviceNamesRepo;
 
-	public GraphService(TraceRepo repo, ServiceNameIndexRepo serviceNameIndexRepo) {
+	public GraphService(TraceRepo repo, ServiceNameIndexRepo serviceNameIndexRepo, ServiceNamesRepo serviceNamesRepo) {
 		// TODO Auto-generated constructor stub
 		this.traceRepo = repo;
 		this.serviceNameIndexRepo = serviceNameIndexRepo;
+		this.serviceNamesRepo = serviceNamesRepo;
 	}
 
 	public GraphData graphData(Long start, Long end) {
 		HashSet<ByteBuffer> distinctTraceId = new HashSet<ByteBuffer>();
 
-		try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange("gateway", start * 1000, end * 1000)) {
-			indexs.forEach(x -> distinctTraceId.add(x.getTraceId()));
+		long startM = start * 1000, endM = end * 1000;
+		try (Stream<ServiceNames> stream = this.serviceNamesRepo.findAllSvc()) {
+			stream.forEach(svcName -> {
+				try (Stream<ServiceNameIndex> indexs = serviceNameIndexRepo.findByTimeRange(svcName.getServiceName(),
+						startM, endM)) {
+					indexs.forEach(x -> distinctTraceId.add(x.getTraceId()));
+				}
+			});
 		}
 
 		Map<String, Long[]> distinctService = new HashMap<String, Long[]>();
 		Map<Integer, HashSet<Integer>> conn = new HashMap<Integer, HashSet<Integer>>();
-		
+
 		for (ByteBuffer buffer : distinctTraceId) {
 			Map<Long, ArrayList<Long>> traceRef = new HashMap<Long, ArrayList<Long>>();
 			Map<Long, String[]> spanSvc = new HashMap<Long, String[]>();
 			HashSet<Long> spanIsConsumer = new HashSet<Long>();
 			long[] rootSpan = new long[1];
-			
+
 			try (Stream<Trace> stream = traceRepo.findByTraceId(buffer)) {
 				stream.forEach(x -> {
 					String[] kind = Utils.getFirstCall(x);
 					boolean chkConsumer = Utils.isConsumer(x);
-					
+
 					if (kind != null) {
 						if (kind.length == 2) {
 							StringBuilder builder = new StringBuilder();
@@ -66,12 +76,12 @@ public class GraphService {
 
 							if (Utils.checkError(x))
 								++newUpdt[2];
-							
+
 							++newUpdt[1];
 							newUpdt[3] += x.getDuration();
 
 							spanSvc.put(x.getPk().getSpanId(), new String[] { title });
-						} else if (kind.length == 4) {
+						} else {
 							StringBuilder builder = new StringBuilder();
 							builder.append(kind[0]).append(' ').append(kind[3]).append(' ').append(kind[1]);
 
@@ -145,9 +155,10 @@ public class GraphService {
 			});
 		});
 
+		double range = (end - start) / 1000; // range in secs
+		
 		distinctService.forEach((k, v) -> {
 			double avgResp = v[1] != 0 ? (double) v[3] / (double) v[1] / 1e6 : 0; // (secs)
-			double range = (end - start) / 1000; // range in secs
 			double reqPerMin = range != 0 ? (double) v[1] * 60 / range : 0;
 			double errRate = v[1] != 0 ? (double) v[2] / (double) v[1] : 0;
 			nodes.add(new Node(v[0].intValue(), k, Utils.round(avgResp), Utils.round(reqPerMin), Utils.round(errRate)));
