@@ -8,6 +8,8 @@ public class Field {
 	private String type;
 	@JsonInclude(Include.NON_NULL)
 	private String color;
+	@JsonInclude(Include.NON_NULL)
+	private String displayName;
 	public Field(String field_name, String type) {
 		super();
 		this.field_name = field_name;
@@ -18,6 +20,13 @@ public class Field {
 		this.field_name = field_name;
 		this.type = type;
 		this.color = color;
+	}
+	public Field(String field_name, String type, String color, String displayName) {
+		super();
+		this.field_name = field_name;
+		this.type = type;
+		this.color = color;
+		this.displayName = displayName;
 	}
 	public Field() {
 		// TODO Auto-generated constructor stub
@@ -39,5 +48,11 @@ public class Field {
 	}
 	public void setColor(String color) {
 		this.color = color;
+	}
+	public String getDisplayName() {
+		return displayName;
+	}
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
 	}
 }
