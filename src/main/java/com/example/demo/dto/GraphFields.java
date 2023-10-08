@@ -20,11 +20,11 @@ public class GraphFields {
 		this.nodes_fields=new ArrayList<Field>(Arrays.asList(
 				new Field("id", "number"),
 				new Field("title", "string"),
-				new Field("mainStat", "string"),
-				new Field("secondaryStat", "string"),
+				new Field("mainStat", "string", null, "Average response time"),
+				new Field("secondaryStat", "string", null, "Requests per minute"),
 				new Field("subTitle","string"),
-				new Field("arc__success", "number", "green"),
-				new Field("arc__error", "number", "red")
+				new Field("arc__success", "number", "green", "Success"),
+				new Field("arc__error", "number", "red", "Error")
 		));
 	}
 	public List<Field> getEdges_fields() {
