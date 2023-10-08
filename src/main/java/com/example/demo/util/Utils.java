@@ -40,6 +40,7 @@ public class Utils {
 			Map<Integer, HashSet<Integer>> conn, HashSet<Long> spanIsConsumer, Map<Long, String[]> spanSvc,
 			int prevIdx) {
 		int currNodeIdx = prevIdx;
+		boolean isConsumer = spanIsConsumer.contains(spanId);
 
 		if (spanSvc.containsKey(spanId)) {
 			int idx1 = distinctService.get(spanSvc.get(spanId)[0])[0].intValue();
@@ -50,16 +51,27 @@ public class Utils {
 			if (spanSvc.get(spanId).length > 1) {
 				int idx2 = distinctService.get(spanSvc.get(spanId)[1])[0].intValue();
 				
-				if (!conn.containsKey(idx1))
-					conn.put(idx1, new HashSet<>());
-				conn.get(idx1).add(idx2);
+//				if (!conn.containsKey(idx1))
+//					conn.put(idx1, new HashSet<>());
+//				conn.get(idx1).add(idx2);
+				
+				if(isConsumer) {
+					if (!conn.containsKey(idx1))
+						conn.put(idx1, new HashSet<>());
+					conn.get(idx1).add(idx2);
+				}
+				else {
+					if (!conn.containsKey(idx2))
+						conn.put(idx2, new HashSet<>());
+					conn.get(idx2).add(idx1);
+				}
 				
 				currNodeIdx = idx2;
 				conn.get(prevIdx).add(idx1);
 			} else {
 				currNodeIdx = idx1;
 
-				if (!spanIsConsumer.contains(spanId))
+				if (!isConsumer)
 					conn.get(prevIdx).add(idx1);
 			}
 		}
