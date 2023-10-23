@@ -14,11 +14,13 @@ public class GraphFields {
 		// TODO Auto-generated constructor stub
 		this.edges_fields=new ArrayList<Field>(Arrays.asList(
 				new Field("id", "number"),
-				new Field("source", "number"),
-				new Field("target", "number")
+				new Field("source", "string"),
+				new Field("target", "string"),
+				new Field("mainStat", "string", null, "Connection type")
+				//new Field("secondaryStat", "string", null, "Latency")
 		));
 		this.nodes_fields=new ArrayList<Field>(Arrays.asList(
-				new Field("id", "number"),
+				new Field("id", "string"),
 				new Field("title", "string"),
 				new Field("mainStat", "string", null, "Average response time"),
 				new Field("secondaryStat", "string", null, "Requests per minute"),

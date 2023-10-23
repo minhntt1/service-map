@@ -14,7 +14,7 @@ import com.example.demo.service.GraphService;
 @RestController
 @RequestMapping("/api")
 public class GraphController {
-	private GraphService service;
+	private final GraphService service;
 
 	public GraphController(GraphService service) {
 		// TODO Auto-generated constructor stub
@@ -32,11 +32,10 @@ public class GraphController {
 	}
 
 	@GetMapping("/graph/data")
-	public ResponseEntity<GraphData> getData(@RequestParam(required = false) Long start,
-			@RequestParam(required = false) Long end) {
-		long curr = System.currentTimeMillis();
-		start = start == null ? curr - 1800000 : start;
-		end = end == null ? curr : end;
+	public ResponseEntity<GraphData> getData(
+			@RequestParam(required = false) Long start,
+			@RequestParam(required = false) Long end
+		) {
 		return new ResponseEntity<GraphData>(this.service.graphData(start, end), HttpStatus.OK);
 	}
 }

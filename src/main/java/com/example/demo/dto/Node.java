@@ -1,13 +1,13 @@
 package com.example.demo.dto;
 
-import com.example.demo.util.MainStatSerializer;
-import com.example.demo.util.SecondaryStatSerializer;
-import com.example.demo.util.SubtitleSerializer;
+import com.example.demo.component.MainStatSerializer;
+import com.example.demo.component.SecondaryStatSerializer;
+import com.example.demo.component.SubtitleSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class Node {
-	private Integer id;
+	private String id;
 	private String title;
 	@JsonSerialize(using = MainStatSerializer.class)
 	private Double mainStat;
@@ -19,7 +19,7 @@ public class Node {
 	private Double arcSuccess;
 	@JsonProperty(value = "arc__error")
 	private Double arcError;
-	public Node(Integer id, String title, Double mainStat, Double secondaryStat, Double subTitle) {
+	public Node(String id, String title, Double mainStat, Double secondaryStat, Double subTitle) {
 		super();
 		this.id = id;
 		this.title = title;
@@ -32,10 +32,10 @@ public class Node {
 	public Node() {
 		// TODO Auto-generated constructor stub
 	}
-	public Integer getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(Integer id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	public String getTitle() {
