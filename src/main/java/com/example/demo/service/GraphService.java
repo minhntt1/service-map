@@ -27,12 +27,13 @@ public class GraphService {
 		this.timeDataRepo = timeDataRepo;
 	}
 
-	public GraphData graphData(Long start, Long end) {
+	public GraphData graphData(Long start, Long end, Boolean showRev) {
 		long curr = System.currentTimeMillis();
 		start = start == null ? curr - 1800000 : start;
 		end = end == null ? curr : end;
 		start *= 1000000;
 		end *= 1000000;
+		showRev = showRev==null ? true : showRev;
 		
 		List<Long> buckets = Calculation.calBuckets(this.bucketSize, start, end);
 		HashSet<Edge> hashSet = new HashSet<Edge>();
@@ -48,7 +49,7 @@ public class GraphService {
 				Long serverDur = row.getLong("server_dur");
 				Boolean showReverse = row.getBoolean("show_reverse");
 				
-				if(showReverse)
+				if(showReverse && showRev)
 					hashSet.add(new Edge(hashSet.size()+1, server, client, connType));
 				else
 					hashSet.add(new Edge(hashSet.size()+1, client, server, connType));

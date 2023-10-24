@@ -34,8 +34,9 @@ public class GraphController {
 	@GetMapping("/graph/data")
 	public ResponseEntity<GraphData> getData(
 			@RequestParam(required = false) Long start,
-			@RequestParam(required = false) Long end
+			@RequestParam(required = false) Long end,
+			@RequestParam(required = false) Boolean showRev
 		) {
-		return new ResponseEntity<GraphData>(this.service.graphData(start, end), HttpStatus.OK);
+		return new ResponseEntity<GraphData>(this.service.graphData(start, end, showRev), HttpStatus.OK);
 	}
 }
