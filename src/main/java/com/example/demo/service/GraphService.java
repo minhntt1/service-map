@@ -51,6 +51,8 @@ public class GraphService {
 				
 				if(showReverse && showRev)
 					hashSet.add(new Edge(hashSet.size()+1, server, client, connType));
+				else if(showReverse)
+					hashSet.add(new Edge(hashSet.size()+1, client, server, new StringBuilder(connType).append("-of").toString()));
 				else
 					hashSet.add(new Edge(hashSet.size()+1, client, server, connType));
 				
